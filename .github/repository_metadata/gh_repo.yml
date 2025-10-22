@@ -1,0 +1,16 @@
+meta-data:
+  repository_name: github-issue-previewer
+  visibility: public
+  org-name: RyoNakagami
+  tag:
+    - uv
+    - uv-tool
+    - uvx
+    - github
+    - github-issues
+    - yaml
+    - python
+    - command-line-tool
+    - cli-tool
+  description: |
+    A lightweight tool to preview GitHub Issue templates from YAML in real-time with Jinja2 and Watchdog.
