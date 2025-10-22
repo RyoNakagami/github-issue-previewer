@@ -1,0 +1,106 @@
+# ============================================================
+# .editorconfig
+# ------------------------------------------------------------
+# Purpose:
+#   Define consistent coding style across different editors and IDEs.
+#
+# Notes:
+#   - This configuration enforces UTF-8 encoding, LF line endings,
+#     and ensures trailing whitespace and newline rules.
+#   - It also includes file-type–specific indentation and trimming policies.
+# ============================================================
+
+# Declare that this is the top-most .editorconfig file
+root = true
+
+# ------------------------------------------------------------
+# [*] Common rules applied to all files
+# ------------------------------------------------------------
+[*]
+# File encoding
+charset = utf-8
+
+# Use Unix-style line endings
+end_of_line = lf
+
+# Ensure each file ends with a newline
+insert_final_newline = true
+
+# Remove trailing whitespace at line ends
+trim_trailing_whitespace = true
+
+
+# ------------------------------------------------------------
+# [*.py] Python files
+# ------------------------------------------------------------
+[*.py]
+# Use spaces (not tabs) for indentation
+indent_style = space
+
+# 4-space indentation per PEP 8
+indent_size = 4
+
+# ------------------------------------------------------------
+# [*.md] Markdown documentation files
+# ------------------------------------------------------------
+[*.md]
+# Use spaces for indentation (common in Markdown lists and code blocks)
+indent_style = space
+
+# 2-space indentation is standard for Markdown
+indent_size = 2
+
+
+# ------------------------------------------------------------
+# [*.csv] Comma-separated data files
+# ------------------------------------------------------------
+[*.csv]
+# Do not trim trailing whitespace (can affect CSV integrity)
+trim_trailing_whitespace = false
+
+# Always end CSV files with a newline
+insert_final_newline = true
+
+# Use LF line endings for portability
+end_of_line = lf
+
+# No indentation control for CSVs
+indent_style = none
+
+
+# ------------------------------------------------------------
+# [*.json] JSON configuration files
+# ------------------------------------------------------------
+[*.json]
+# Use spaces for indentation
+indent_style = space
+
+# 2-space indentation for compactness
+indent_size = 2
+
+# End with newline for clean diffs
+insert_final_newline = true
+
+# Use LF line endings for consistency
+end_of_line = lf
+
+# Do not trim whitespace to avoid corrupting JSON structure
+trim_trailing_whitespace = false
+
+
+# ------------------------------------------------------------
+# [*.yml], [*.yaml] YAML configuration files
+# ------------------------------------------------------------
+[*.yml]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.yaml]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true

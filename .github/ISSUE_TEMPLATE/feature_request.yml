@@ -1,0 +1,31 @@
+name: "Feature Request"
+description: "Suggest a new feature or improvement for the project"
+title: "FEATURE: "
+labels: [feature]
+
+body:
+  - type: textarea
+    id: feature-goal
+    attributes:
+      label: "Feature Goal"
+      description: |
+        Describe the new feature you want to see added.
+        Explain what it should do and why it is useful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-approach
+    attributes:
+      label: "Proposed Approach"
+      description: |
+        Optional: Suggest how this feature could be implemented or integrated.
+        Provide examples, references, or prior art if available.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: "References / Additional Information"
+      description: |
+        Optional: Include links, documents, screenshots, or other materials
+        that could help clarify or support the feature request.

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <title>{{ name }} - GitHub Issue Preview</title>
+  <link rel="stylesheet" href="{{ css }}">
+
+  <!-- uncomment out when checking css styles with html-->
+  <!-- <link rel="stylesheet" href="github-issue-template.css"> -->
+</head>
+
+<body style="margin: 2.0em; display: flex; flex-direction: column;">
+
+  <!-- ===== Fixed Top Section ===== -->
+  <div style="flex: 0 0 auto; position: sticky; top: 0; background: #0d1117; z-index: 10; padding-bottom: 1em;">
+    <div class="CreateIssueDialogHeader-module__dialogTitleSection--M7S4F">
+      <h1 class="prc-Dialog-Title-oQ-W6" id="issue-title">Create new issue: {{ name }}</h1>
+      <p><em>{{ description }}</em></p>
+    </div>
+    <hr style="border: none; border-top: 1px solid #ccc; margin-bottom: 0.5em;">
+  </div>
+
+  <!-- ===== Scrollable Container ===== -->
+  <div style="flex: 1 1 auto; overflow-y: auto; padding-right: 1em;">
+
+    <!-- Title Input Section -->
+    <div class="CreateIssueFormTitle-module__container--GhqlY">
+      <div data-has-label="" style="margin-bottom: 0.5em;">
+        <label class="first-label" for="issue-title"
+          class="CreateIssueFormTitle-module__formControlLabel--ksDPF prc-components-Label-bE-kK">
+          <span class="prc-components-RequiredText-ztJvt">
+            <span>Add a title</span>
+            <span class="prc-required">*</span>
+          </span>
+        </label>
+        <div style="padding-left: 0.25em;">
+          <div class="InlineAutocomplete-module__container--lzMAk">
+            <span
+              class="TextInput-wrapper prc-components-TextInputWrapper-i1ofR prc-components-TextInputBaseWrapper-ueK9q"
+              aria-busy="false">
+              <input type="text" aria-required="true" aria-label="Add a title" placeholder="Title" id="issue-title"
+                data-component="input" class="prc-components-Input-Ic-y8" value="{{ title }}">
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Body -->
+    <form>
+
+      {% for item in body %}
+      <fieldset {% if item.type=='markdown' %}class="markdown-fieldset" {% endif %}>
+
+        {# ===== Markdown Type (Read-only) ===== #}
+        {% if item.type == 'markdown' %}
+        <div class="Box-sc-62in7e-0 bSPJXs markdown-body">
+          <p>{{ item.attributes.value }}</p>
+        </div>
+
+        {# ===== Textarea or Input (textarea = Markdown editable) ===== #}
+        {% elif item.type in ['textarea','input'] %}
+        {% set required = item.get('validations', {}).get('required', False) %}
+        {% if required %}
+        {% set label_html = item.attributes.label + ' <span class="prc-required">*</span>' %}
+        {% else %}
+        {% set label_html = item.attributes.label %}
+        {% endif %}
+        <label>{{ label_html | safe }}</label>
+
+        {% if item.attributes.get('description') %}
+        <div class="Box-sc-62in7e-0 markdown-body note text-small mb-2">
+          <p>{{ item.attributes.description }}</p>
+        </div>
+        {% endif %}
+
+        {% if item.type == 'textarea' %}
+        <!-- Markdown Editor Header -->
+        <div class="MarkdownEditor-module__header--OuWiJ">
+          <div class="MarkdownEditor-module__viewSwitchWrapper--oQoLo">
+            <div class="ViewSwitch-module__viewSwitch--qZjLs">
+              <nav aria-label="View mode" class="prc-TabNav-TabNavNav-rTAFO">
+                <div role="tablist" class="prc-TabNav-TabNavTabList-0QtIV">
+                  <button role="tab" aria-selected="true" class="TabNav-item selected">Write</button>
+                  <button role="tab" aria-selected="false" class="TabNav-item">Preview</button>
+                </div>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formatting Toolbar -->
+        <div aria-label="Formatting tools" role="toolbar" class="Toolbar-module__toolbar--TBvFM">
+          <!-- toolbar buttons -->
+        </div>
+
+        <!-- Textarea Container -->
+        <div class="InlineAutocomplete-module__container--lzMAk">
+          <textarea rows="5" cols="30" class="MarkdownInput-module__textArea--kLNLR prc-Textarea-TextArea-13q4j"
+            placeholder="{{ item.attributes.placeholder or 'The content on this page is outdated because...' }}">{{ item.attributes.value or '' }}</textarea>
+
+          <!-- Add Files Button -->
+          <button type="button" class="prc-Button-ButtonBase-c50BI Footer-module__footerButton--zxnP6"
+            data-loading="false" data-size="small" data-variant="invisible"
+            aria-describedby=":re8:-loading-announcement">
+            <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
+              <span data-component="leadingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
+                <svg aria-hidden="true" focusable="false" class="octicon octicon-paperclip" viewBox="0 0 16 16"
+                  width="16" height="16" fill="currentColor" display="inline-block" overflow="visible"
+                  style="vertical-align: text-bottom;">
+                  <path
+                    d="M12.212 3.02a1.753 1.753 0 0 0-2.478.003l-5.83 5.83a3.007 3.007 0 0 0-.88 2.127c0 .795.315 1.551.88 2.116.567.567 1.333.89 2.126.89.79 0 1.548-.321 2.116-.89l5.48-5.48a.75.75 0 0 1 1.061 1.06l-5.48 5.48a4.492 4.492 0 0 1-3.177 1.33c-1.2 0-2.345-.487-3.187-1.33a4.483 4.483 0 0 1-1.32-3.177c0-1.195.475-2.341 1.32-3.186l5.83-5.83a3.25 3.25 0 0 1 5.553 2.297c0 .863-.343 1.691-.953 2.301L7.439 12.39c-.375.377-.884.59-1.416.593a1.998 1.998 0 0 1-1.412-.593 1.992 1.992 0 0 1 0-2.828l5.48-5.48a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-5.48 5.48a.492.492 0 0 0 0 .707.499.499 0 0 0 .352.154.51.51 0 0 0 .356-.154l5.833-5.827a1.755 1.755 0 0 0 0-2.481Z">
+                  </path>
+                </svg>
+              </span>
+              <span data-component="text" class="prc-Button-Label-pTQ3x">
+                <span class="Footer-module__condensed--o9bUn">Add Files</span>
+                <span class="Footer-module__spacious--VlAKA">Paste, drop, or click to add files</span>
+              </span>
+            </span>
+          </button>
+        </div>
+
+        {% else %}
+        <input type="text" value="{{ item.attributes.get('value') or item.attributes.get('placeholder','') }}">
+        {% endif %}
+
+        {# ===== Checkboxes ===== #}
+        {% elif item.type == 'checkboxes' %}
+        <label>{{ item.attributes.label }}</label>
+        <div class="prc-CheckboxOrRadioGroup-Body-cNQoa">
+          {% for opt in item.attributes.options %}
+          <div class="prc-FormControl-ControlHorizontalLayout-GkYZF"
+            style="display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;">
+            <input type="checkbox" id="{{ opt.id or ':chk' ~ loop.index }}"
+              class="prc-Checkbox-Input-mxggT prc-Checkbox-Checkbox-gIwWX" value="" aria-checked="false">
+            <span class="Text__StyledText-sc-1klmep6-0 prc-Text-Text-0ima0">{{ opt.label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% endif %}
+      </fieldset>
+      {% endfor %}
+    </form>
+
+    <!-- Footer Buttons -->
+    <div class="footer-buttons">
+      <button type="button">Assignees: {{ assignees|join(', ') }}</button>
+      <button type="button">Labels: {{ labels|join(', ') }}</button>
+    </div>
+
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    // ===== Auto-reload Polling =====
+    let lastModified = null;
+
+    async function poll() {
+      try {
+        const res = await fetch('/reload.txt?cache=' + Date.now());
+        const text = await res.text();
+        if (lastModified && text.trim() !== lastModified) {
+          console.log('🔄 Reload triggered');
+          location.reload();
+        }
+        lastModified = text.trim();
+      } catch (e) {
+        console.warn('poll failed', e);
+      }
+      setTimeout(poll, 1500);
+    }
+
+    poll();
+
+    // ===== Markdown Editor Tab Switching =====
+    document.querySelectorAll('.markdown-editor').forEach(editor => {
+      const textarea = editor.querySelector('.markdown-input');
+      const preview = editor.querySelector('.markdown-preview');
+      const tabs = editor.querySelectorAll('.tab-btn');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          if (tab.dataset.tab === 'write') {
+            textarea.style.display = 'block';
+            preview.style.display = 'none';
+          } else {
+            textarea.style.display = 'none';
+            preview.style.display = 'block';
+            preview.innerHTML = marked.parse(textarea.value);
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+
+</html>
+
+
+</html>

@@ -1,0 +1,37 @@
+name: Enhancement Request
+description: Describe what features you want to improve
+title: "ENH: "
+labels: [enhancement]
+
+body:
+  - type: textarea
+    id: tobe-performance
+    attributes:
+      label: Goal Description
+      description: >
+        Please describe the performance goal you want to achieve.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: >
+        Please describe the current performance problem you are facing.
+        Please provide a minimal, copy-pastable example that quantifies
+        [slow runtime](https://docs.python.org/3/library/timeit.html) or
+        [memory usage](https://github.com/bloomberg/memray) issues.
+    validations:
+      required: true
+  - type: textarea
+    id: comment
+    attributes:
+      label: Additional Comment
+      description: >
+        Please provide any additional information here.
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference
+      description: >
+        Please provide any reference materials or links that may be helpful.

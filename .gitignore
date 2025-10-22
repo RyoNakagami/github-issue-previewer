@@ -1,0 +1,66 @@
+# =========================================
+# .gitignore
+# AUTHOR: RyoNak
+# UPDATED: 2025-10-23
+# DESCRIPTION:
+#   Minimal .gitignore for uv-based Python projects.
+#   Focused on lightweight packaging, reproducible environments,
+#   and exclusion of transient or local artifacts.
+# =========================================
+
+# ---------------------
+# General
+# ---------------------
+.DS_Store
+*.log
+*.tmp
+*.bak
+*.old
+tmp/
+sandbox/
+
+# ---------------------
+# Environments
+# ---------------------
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------
+# Python
+# ---------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# ---------------------
+# Packaging / Build
+# ---------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+share/python-wheels/
+*.egg
+*.manifest
+*.spec
+
+# ---------------------
+# Notebooks
+# ---------------------
+.ipynb_checkpoints/
+
+# ---------------------
+# Logs / Reports
+# ---------------------
+coverage.xml
+*.cover
+.coverage*
+htmlcov/
