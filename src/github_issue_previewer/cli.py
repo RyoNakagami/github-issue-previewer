@@ -57,6 +57,20 @@ def generate_html(
     reload_file: Path,
     html_template: str,
 ):
+    """
+    Render YAML as HTML using Jinja2 template.
+
+    Loads data from a YAML file, updates it with default fields, renders it to HTML using
+    the provided Jinja2 template, copies the CSS file, and writes the output HTML and reload
+    timestamp files.
+
+    Args:
+        yaml_file (Path): Path to the input YAML file.
+        html_file (Path): Path to the output HTML file.
+        css_file (Path): Path to the CSS file to copy.
+        reload_file (Path): Path to the reload timestamp file.
+        html_template (str): Jinja2 template string for HTML rendering.
+    """
     css_dest = html_file.parent / css_file.name
     shutil.copy2(css_file, css_dest)
 
