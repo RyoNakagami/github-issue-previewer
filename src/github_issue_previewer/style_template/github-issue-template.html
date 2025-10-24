@@ -14,12 +14,13 @@
 <body style="margin: 2.0em; display: flex; flex-direction: column;">
 
   <!-- ===== Fixed Top Section ===== -->
-  <div style="flex: 0 0 auto; position: sticky; top: 0; background: #0d1117; z-index: 10; padding-bottom: 1em;">
+  <div id="IssueHeaderSection-not-exported"
+    style="flex: 0 0 auto; position: sticky; top: 0; background: #0d1117; z-index: 10; padding-bottom: 1em;">
     <div class="CreateIssueDialogHeader-module__dialogTitleSection--M7S4F">
       <h1 class="prc-Dialog-Title-oQ-W6" id="issue-title">Create new issue: {{ name }}</h1>
-      <p><em>{{ description }}</em></p>
+      <div class="markdown-body"><em>{{ description_html | safe }}</em></div>
     </div>
-    <hr style="border: none; border-top: 1px solid #ccc; margin-bottom: 0.5em;">
+    <hr style="border: none; border-top: 1px solid #ccc; margin-bottom: 0.5em;" id="divider-not-exported">
   </div>
 
   <!-- ===== Scrollable Container ===== -->
@@ -28,9 +29,9 @@
     <!-- Title Input Section -->
     <div class="CreateIssueFormTitle-module__container--GhqlY">
       <div data-has-label="" style="margin-bottom: 0.5em;">
-        <label class="first-label" for="issue-title"
+        <label class="first-label" id="issue-title-label-not-exported" for="issue-title"
           class="CreateIssueFormTitle-module__formControlLabel--ksDPF prc-components-Label-bE-kK">
-          <span class="prc-components-RequiredText-ztJvt">
+          <span class="prc-components-RequiredText-ztJvt" id="IssueTitlePrompter-not-exported">
             <span>Add a title</span>
             <span class="prc-required">*</span>
           </span>
@@ -57,7 +58,7 @@
         {# ===== Markdown Type (Read-only) ===== #}
         {% if item.type == 'markdown' %}
         <div class="Box-sc-62in7e-0 bSPJXs markdown-body">
-          <p>{{ item.attributes.value }}</p>
+          {{ item.attributes.html | safe }}
         </div>
 
         {# ===== Textarea or Input (textarea = Markdown editable) ===== #}
@@ -72,13 +73,13 @@
 
         {% if item.attributes.get('description') %}
         <div class="Box-sc-62in7e-0 markdown-body note text-small mb-2">
-          <p>{{ item.attributes.description }}</p>
+          {{ item.attributes.description_html | safe }}
         </div>
         {% endif %}
 
         {% if item.type == 'textarea' %}
         <!-- Markdown Editor Header -->
-        <div class="MarkdownEditor-module__header--OuWiJ">
+        <div class="MarkdownEditor-module__header--OuWiJ" id="WritePreviewSwitcher-not-exported">
           <div class="MarkdownEditor-module__viewSwitchWrapper--oQoLo">
             <div class="ViewSwitch-module__viewSwitch--qZjLs">
               <nav aria-label="View mode" class="prc-TabNav-TabNavNav-rTAFO">
@@ -102,9 +103,9 @@
             placeholder="{{ item.attributes.placeholder or 'The content on this page is outdated because...' }}">{{ item.attributes.value or '' }}</textarea>
 
           <!-- Add Files Button -->
-          <button type="button" class="prc-Button-ButtonBase-c50BI Footer-module__footerButton--zxnP6"
-            data-loading="false" data-size="small" data-variant="invisible"
-            aria-describedby=":re8:-loading-announcement">
+          <button type="button" id="add-files-button-not-exported"
+            class="prc-Button-ButtonBase-c50BI Footer-module__footerButton--zxnP6" data-loading="false"
+            data-size="small" data-variant="invisible" aria-describedby=":re8:-loading-announcement">
             <span data-component="buttonContent" data-align="center" class="prc-Button-ButtonContent-HKbr-">
               <span data-component="leadingVisual" class="prc-Button-Visual-2epfX prc-Button-VisualWrap-Db-eB">
                 <svg aria-hidden="true" focusable="false" class="octicon octicon-paperclip" viewBox="0 0 16 16"
@@ -150,6 +151,9 @@
     <div class="footer-buttons">
       <button type="button">Assignees: {{ assignees|join(', ') }}</button>
       <button type="button">Labels: {{ labels|join(', ') }}</button>
+      <button type="button" id="export-btn" style="background-color: #238636; color: white; margin-left: 10px;">
+        Export as Markdown
+      </button>
     </div>
 
   </div>
@@ -176,6 +180,114 @@
     }
 
     poll();
+
+    // ===== Export as Markdown =====
+    document.getElementById('export-btn').addEventListener('click', async function () {
+      const btn = this;
+      const originalText = btn.textContent;
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Exporting...';
+
+        const bodyClone = document.body.cloneNode(true);
+
+        // Convert fieldset labels to <h2>
+        bodyClone.querySelectorAll('fieldset > label').forEach(label => {
+          const h2 = document.createElement('h2');
+          h2.innerHTML = label.innerHTML;
+          label.parentNode.replaceChild(h2, label);
+        });
+
+        // Remove required asterisks
+        bodyClone.querySelectorAll('.prc-required').forEach(el => el.remove());
+
+        // Remove elements with -not-exported in id
+        bodyClone.querySelectorAll('[id$="-not-exported"], [class*="-not-exported"]').forEach(el => el.remove());
+
+        // Gather all inputs
+        let originalInputs = Array.from(document.querySelectorAll('input, textarea'));
+        // Include autocomplete inputs
+        document.querySelectorAll('.InlineAutocomplete-module__container--lzMAk input').forEach(i => {
+          if (!originalInputs.includes(i)) originalInputs.push(i);
+        });
+        // Include #issue-title
+        const issueTitle = document.getElementById('issue-title');
+        if (issueTitle && !originalInputs.includes(issueTitle)) originalInputs.push(issueTitle);
+
+        let clonedInputs = Array.from(bodyClone.querySelectorAll('input, textarea'));
+        document.querySelectorAll('.InlineAutocomplete-module__container--lzMAk input').forEach(i => {
+          const ci = bodyClone.querySelector(`#${i.id}`);
+          if (ci && !clonedInputs.includes(ci)) clonedInputs.push(ci);
+        });
+        if (issueTitle) {
+          const ci = bodyClone.querySelector('#issue-title');
+          if (ci && !clonedInputs.includes(ci)) clonedInputs.push(ci);
+        }
+
+        // Sync values
+        // Sync #issue-title specifically
+        const issueTitleInput = bodyClone.querySelector('#issue-title');
+        if (issueTitleInput) {
+          const span = document.createElement('span');
+          span.textContent = issueTitleInput.value; // current user-edited text
+          span.id = 'issue-title-exported';         // optional
+          issueTitleInput.parentNode.replaceChild(span, issueTitleInput);
+        }
+
+        originalInputs.forEach(input => {
+          let clonedInput = input.id ? bodyClone.querySelector(`#${input.id}`) : clonedInputs[originalInputs.indexOf(input)];
+          if (!clonedInput) return;
+
+          switch (input.type) {
+            case 'checkbox':
+            case 'radio':
+              clonedInput.checked = input.checked;
+              if (input.checked) clonedInput.setAttribute('checked', 'checked');
+              else clonedInput.removeAttribute('checked');
+              break;
+            default:
+              clonedInput.value = input.value;
+              clonedInput.setAttribute('value', input.value);
+              if (input.tagName === 'TEXTAREA') clonedInput.textContent = input.value;
+              break;
+          }
+        });
+
+        // Remove UI buttons and scripts
+        bodyClone.querySelector('.footer-buttons')?.remove();
+        bodyClone.querySelectorAll('script').forEach(script => script.remove());
+
+        // Send HTML to server
+        const htmlContent = bodyClone.innerHTML;
+        const response = await fetch('/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ html: htmlContent })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          btn.textContent = '✓ ' + result.message;
+          btn.style.backgroundColor = '#2ea043';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.backgroundColor = '#238636';
+          }, 3000);
+        } else throw new Error(result.message);
+
+      } catch (err) {
+        console.error('Export failed:', err);
+        btn.textContent = '✗ Export failed';
+        btn.style.backgroundColor = '#da3633';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.backgroundColor = '#238636';
+        }, 3000);
+      } finally {
+        btn.disabled = false;
+      }
+    });
 
     // ===== Markdown Editor Tab Switching =====
     document.querySelectorAll('.markdown-editor').forEach(editor => {
