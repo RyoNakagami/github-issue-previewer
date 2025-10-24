@@ -131,7 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 # =============================
-# Typer main function (直接引数版)
+# Typer main function (direct argument version)
 # =============================
 def main(
     yaml_file: Path = typer.Argument(..., help="Path to issue_template.yml"),
