@@ -73,10 +73,14 @@ def cleanup(temp_html: Path, css_file: Path, reload_file: Path, port: int):
 def generate_html(
     yaml_file: Path,
     html_file: Path,
-    css_name: str,
+    css_file: Path,
     reload_file: Path,
     html_template: str,
 ):
+    # Copy CSS next to generated HTML
+    css_dest = html_file.parent / css_file.name
+    shutil.copy2(css_file, css_dest)
+
     """Render YAML as HTML using Jinja2 template"""
     with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
@@ -92,7 +96,7 @@ def generate_html(
         }
     )
 
-    html = Template(html_template).render(css=css_name, **data)
+    html = Template(html_template).render(css=css_file.name, **data)
     html_file.write_text(html, encoding="utf-8")
     reload_file.write_text(str(time.time()), encoding="utf-8")
     print(f"Rendered {html_file}")
@@ -152,17 +156,13 @@ def main():
         tmp_dir if tmp_dir.exists() else html_file.parent
     ) / f"{yaml_file.stem}_reload.txt"
 
-    # Copy CSS next to generated HTML
-    css_dest = tmp_dir / CSS_TEMPLATE.name
-    shutil.copy2(CSS_TEMPLATE, css_dest)
-
     os.chdir(yaml_file.parent)
     free_port(port)
 
     with open(HTML_TEMPLATE, "r", encoding="utf-8") as f:
         html_template = f.read()
 
-    generate_html(yaml_file, html_file, CSS_TEMPLATE.name, reload_file, html_template)
+    generate_html(yaml_file, html_file, CSS_TEMPLATE, reload_file, html_template)
 
     # Start threaded server
     server = ThreadedTCPServer(("localhost", port), Handler)
@@ -192,14 +192,15 @@ def main():
             if yaml_file.stat().st_mtime != last_mtime:
                 print("♻️ YAML changed, updating preview...")
                 generate_html(
-                    yaml_file, html_file, CSS_TEMPLATE.name, reload_file, html_template
+                    yaml_file, html_file, CSS_TEMPLATE, reload_file, html_template
                 )
                 last_mtime = yaml_file.stat().st_mtime
     except KeyboardInterrupt:
+        css_file = html_file.parent / CSS_TEMPLATE.name
         print("\n🛑 Shutting down server...")
         server.shutdown()
         server.server_close()
-        cleanup(html_file, css_dest, reload_file, port)
+        cleanup(html_file, css_file, reload_file, port)
         print("✅ Port released. Goodbye!")
 
 
