@@ -13,6 +13,8 @@ from typing import Optional
 import shutil
 import typer
 
+app = typer.Typer(help="Live preview GitHub issue template YAML", add_completion=False)
+
 # =============================
 # Paths
 # =============================
@@ -133,18 +135,19 @@ class Handler(SimpleHTTPRequestHandler):
 # =============================
 # Typer main function (direct argument version)
 # =============================
-def main(
-    yaml_file: Path = typer.Argument(..., help="Path to issue_template.yml"),
+
+
+@app.command()
+def preview(
+    yaml_file: Path = typer.Argument(
+        ..., exists=True, help="Path to issue_template.yml"
+    ),
     browser: Optional[str] = typer.Option(
         None, "--browser", help="Browser path (optional)"
     ),
     port: int = typer.Option(8000, "--port", "-p", help="Port number"),
 ):
     """Start a live HTML preview of a GitHub Issue Template YAML file."""
-
-    if not yaml_file.exists():
-        typer.echo(f"❌ YAML file not found: {yaml_file}")
-        raise typer.Exit(code=1)
 
     html_file = yaml_file.with_suffix(".html")
     tmp_dir = Path("/tmp")
@@ -196,5 +199,10 @@ def main(
         typer.echo("✅ Port released. Goodbye!")
 
 
+def main():
+    """Entry point for the CLI."""
+    app()
+
+
 if __name__ == "__main__":
-    typer.run(main)
+    main()
