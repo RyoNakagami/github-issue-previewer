@@ -1,7 +1,7 @@
 # GitHub Issue Previewer
 
 ![Python](https://img.shields.io/badge/python->3.12,<4-blue)
-![OS](https://img.shields.io/badge/OS-|%20Linux%20|%20macOS-brightgreen)
+![OS](https://img.shields.io/badge/OS-Linux%20%7C%20macOS-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 ![Open Issues](https://img.shields.io/github/issues-raw/RyoNakagami/github-issue-previewer)
 ![Open PRs](https://img.shields.io/github/issues-pr/RyoNakagami/github-issue-previewer)
