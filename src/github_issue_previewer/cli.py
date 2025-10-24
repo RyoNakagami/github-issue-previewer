@@ -40,6 +40,7 @@ def free_port(port: int):
 
 
 def cleanup(temp_html: Path, css_file: Path, reload_file: Path, port: int):
+    """Remove temporary files and release resources"""
     for path in [temp_html, css_file, reload_file]:
         if path.exists():
             try:
