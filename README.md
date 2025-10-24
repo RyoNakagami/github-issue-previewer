@@ -1,9 +1,11 @@
 # GitHub Issue Previewer
 
 ![Python](https://img.shields.io/badge/python->3.12,<4-blue)
+![OS](https://img.shields.io/badge/OS-Linux%20%7C%20macOS-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 ![Open Issues](https://img.shields.io/github/issues-raw/RyoNakagami/github-issue-previewer)
 ![Open PRs](https://img.shields.io/github/issues-pr/RyoNakagami/github-issue-previewer)
+
 
 
 A lightweight CLI tool that provides real-time preview of GitHub Issue templates (YAML) in your browser. Perfect for designing and testing issue templates before committing them to your repository.

@@ -55,9 +55,9 @@ def free_port(port: int):
         pass
 
 
-def cleanup(temp_html: Path, reload_file: Path, port: int):
+def cleanup(temp_html: Path, css_file: Path, reload_file: Path, port: int):
     """Remove temporary files and release resources"""
-    for path in [temp_html, reload_file]:
+    for path in [temp_html, css_file, reload_file]:
         if path.exists():
             try:
                 path.unlink()
@@ -153,7 +153,7 @@ def main():
     ) / f"{yaml_file.stem}_reload.txt"
 
     # Copy CSS next to generated HTML
-    css_dest = html_file.parent / CSS_TEMPLATE.name
+    css_dest = tmp_dir / CSS_TEMPLATE.name
     shutil.copy2(CSS_TEMPLATE, css_dest)
 
     os.chdir(yaml_file.parent)
@@ -199,7 +199,7 @@ def main():
         print("\n🛑 Shutting down server...")
         server.shutdown()
         server.server_close()
-        cleanup(html_file, reload_file, port)
+        cleanup(html_file, css_dest, reload_file, port)
         print("✅ Port released. Goodbye!")
 
 
