@@ -21,6 +21,10 @@ body:
         Please provide a minimal, copy-pastable example that quantifies
         [slow runtime](https://docs.python.org/3/library/timeit.html) or
         [memory usage](https://github.com/bloomberg/memray) issues.
+      value: |
+        ```python
+        # Example code demonstrating the performance issue
+        ```
     validations:
       required: true
   - type: textarea

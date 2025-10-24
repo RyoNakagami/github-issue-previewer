@@ -1,3 +1,5 @@
+import re
+from mdformat import text as mdformat_text
 import os
 import yaml
 import webbrowser
@@ -6,9 +8,11 @@ import threading
 import signal
 import time
 import subprocess
+import json
 from http.server import SimpleHTTPRequestHandler
 from jinja2 import Template
 from markdown_it import MarkdownIt
+from markdownify import markdownify as md
 from pathlib import Path
 from typing import Optional
 import shutil
@@ -23,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STYLE_DIR = BASE_DIR / "style_template"
 HTML_TEMPLATE = STYLE_DIR / "github-issue-template.html"
 CSS_TEMPLATE = STYLE_DIR / "github-issue-template.css"
+CURRENT_DIR = Path.cwd()
 
 
 # =============================
@@ -119,12 +124,54 @@ def generate_html(
     print(f"Rendered {html_file}")
 
 
+def hybrid_markdown_formatter(original_md: str) -> str:
+    """
+    Format Markdown nicely while preserving explicit numbered lists.
+    """
+    # 1️⃣ Run mdformat (this will normalize lists to all "1.")
+    try:
+        formatted = mdformat_text(original_md)
+    except Exception as e:
+        print(f"⚠️ mdformat failed, using unformatted markdown: {e}")
+        return original_md
+
+    # 2️⃣ Extract original list numbering
+    # Map: line index (without blank lines) → actual number
+    original_numbers = {}
+    for idx, line in enumerate(original_md.splitlines()):
+        m = re.match(r"^(\s*)(\d+)\.\s+", line)
+        if m:
+            original_numbers[idx] = int(m.group(2))
+
+    # 3️⃣ Reinsert numbers back into formatted markdown
+    formatted_lines = formatted.splitlines()
+    new_lines = []
+    num_iter = iter(original_numbers.values())
+    current_num = None
+
+    for line in formatted_lines:
+        m = re.match(r"^(\s*)1\.\s+", line)
+        if m:
+            try:
+                # Replace "1." with actual original number
+                current_num = next(num_iter)
+                prefix = f"{m.group(1)}{current_num}. "
+                line = re.sub(r"^(\s*)1\.\s+", prefix, line)
+            except StopIteration:
+                pass
+        new_lines.append(line)
+
+    return "\n".join(new_lines).strip() + "\n"
+
+
 # =============================
 # HTTP Server
 # =============================
 class ThreadedTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     reload_file: Optional[Path] = None
+    yaml_file: Optional[Path] = None
+    output_path: Optional[Path] = None
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -154,6 +201,73 @@ class Handler(SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
+    def do_POST(self):
+        """Handle POST requests for exporting edited content as Markdown"""
+        if self.path == "/export":
+            try:
+                # Read the POST data
+                content_length = int(self.headers.get("Content-Length", 0))
+                post_data = self.rfile.read(content_length).decode("utf-8")
+                data = json.loads(post_data)
+
+                html_content = data.get("html", "")
+
+                # Remove elements with specific tags AND id ending with -not-exported
+                tags_to_remove = ["div", "section", "p", "e", "button", "span"]
+                pattern = (
+                    r'<({tags})[^>]*id="[^"]*-not-exported"[^>]*>.*?</\1>'.format(
+                        tags="|".join(tags_to_remove)
+                    )
+                )
+
+                html_content = re.sub(pattern, "", html_content, flags=re.DOTALL | re.IGNORECASE)
+
+
+                # Convert HTML to Markdown
+                markdown_content = md(html_content, heading_style="ATX")
+
+                if self.server.output_path:
+                    output_file = Path(self.server.output_path).resolve()
+                elif self.server.yaml_file:
+                    output_file = self.server.yaml_file.with_suffix(".exported.md")
+                else:
+                    output_file = None
+
+                if output_file:
+                    try:
+                        formatted_md = hybrid_markdown_formatter(markdown_content)
+                    except Exception as e:
+                        print(f"⚠️ mdformat failed, using unformatted markdown: {e}")
+                        formatted_md = markdown_content
+
+                    output_file.write_text(formatted_md, encoding="utf-8")
+
+                    response = {
+                        "success": True,
+                        "message": f"Exported to {output_file.name}",
+                        "path": str(output_file),
+                    }
+                else:
+                    response = {
+                        "success": False,
+                        "message": "No valid output path or YAML file available",
+                    }
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps(response).encode("utf-8"))
+
+            except Exception as e:
+                error_response = {"success": False, "message": f"Error: {str(e)}"}
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(error_response).encode("utf-8"))
+        else:
+            self.send_error(404)
+
 
 # =============================
 # Typer main function (direct argument version)
@@ -169,6 +283,9 @@ def preview(
         None, "--browser", help="Browser path (optional)"
     ),
     port: int = typer.Option(8000, "--port", "-p", help="Port number"),
+    output_path: Optional[Path] = typer.Option(
+        None, "--output-path", "-o", help="Optional Markdown export path"
+    ),
 ):
     """Start a live HTML preview of a GitHub Issue Template YAML file."""
 
@@ -195,6 +312,8 @@ def preview(
 
     server = ThreadedTCPServer(("localhost", port), Handler)
     server.reload_file = reload_file
+    server.yaml_file = yaml_file
+    server.output_path =  (CURRENT_DIR / output_path).resolve()if output_path else None
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
 
