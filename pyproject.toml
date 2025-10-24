@@ -25,7 +25,7 @@ dev = [
 github-issue-previewer = "github_issue_previewer.cli:main"
 
 [tool.hatch.build.targets.wheel]
-include = ["src/github_issue_previewer/style_template/*.css", "src/github_issue_previewer/style_template/*.html"]
+include = ["github_issue_previewer/style_template/*.css", "github_issue_previewer/style_template/*.html"]
 
 [build-system]
 requires = ["hatchling"]
