@@ -91,6 +91,18 @@ def generate_html(
                 if "value" in item["attributes"]:
                     item["attributes"]["html"] = md.render(item["attributes"]["value"])
 
+            # Parse description field as markdown for all item types
+            if "attributes" in item and "description" in item["attributes"]:
+                desc = item["attributes"]["description"]
+                if desc:
+                    item["attributes"]["description_html"] = md.render(desc)
+
+    # Process top-level description field as markdown if it exists
+    if "description" in data and data["description"]:
+        data["description_html"] = md.render(data["description"])
+    else:
+        data["description_html"] = ""
+
     data.update(
         {
             "assignees": data.get("assignees", []),

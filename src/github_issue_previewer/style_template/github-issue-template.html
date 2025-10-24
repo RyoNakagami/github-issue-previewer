@@ -17,7 +17,7 @@
   <div style="flex: 0 0 auto; position: sticky; top: 0; background: #0d1117; z-index: 10; padding-bottom: 1em;">
     <div class="CreateIssueDialogHeader-module__dialogTitleSection--M7S4F">
       <h1 class="prc-Dialog-Title-oQ-W6" id="issue-title">Create new issue: {{ name }}</h1>
-      <p><em>{{ description }}</em></p>
+      <div class="markdown-body"><em>{{ description_html | safe }}</em></div>
     </div>
     <hr style="border: none; border-top: 1px solid #ccc; margin-bottom: 0.5em;">
   </div>
@@ -72,7 +72,7 @@
 
         {% if item.attributes.get('description') %}
         <div class="Box-sc-62in7e-0 markdown-body note text-small mb-2">
-          <p>{{ item.attributes.description }}</p>
+          {{ item.attributes.description_html | safe }}
         </div>
         {% endif %}
 
