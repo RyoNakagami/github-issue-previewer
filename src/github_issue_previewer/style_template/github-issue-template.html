@@ -57,7 +57,7 @@
         {# ===== Markdown Type (Read-only) ===== #}
         {% if item.type == 'markdown' %}
         <div class="Box-sc-62in7e-0 bSPJXs markdown-body">
-          <p>{{ item.attributes.value }}</p>
+          {{ item.attributes.html | safe }}
         </div>
 
         {# ===== Textarea or Input (textarea = Markdown editable) ===== #}

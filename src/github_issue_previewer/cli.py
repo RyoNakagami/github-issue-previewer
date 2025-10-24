@@ -8,6 +8,7 @@ import time
 import subprocess
 from http.server import SimpleHTTPRequestHandler
 from jinja2 import Template
+from markdown_it import MarkdownIt
 from pathlib import Path
 from typing import Optional
 import shutil
@@ -80,6 +81,16 @@ def generate_html(
     with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
 
+    # Initialize markdown parser
+    md = MarkdownIt()
+
+    # Process markdown content in body elements
+    if "body" in data:
+        for item in data["body"]:
+            if item.get("type") == "markdown" and "attributes" in item:
+                if "value" in item["attributes"]:
+                    item["attributes"]["html"] = md.render(item["attributes"]["value"])
+
     data.update(
         {
             "assignees": data.get("assignees", []),
@@ -149,12 +160,19 @@ def preview(
 ):
     """Start a live HTML preview of a GitHub Issue Template YAML file."""
 
+    # Resolve yaml_file to absolute path
+    yaml_file = Path(yaml_file).resolve()
+    if not yaml_file.exists():
+        typer.echo(f"❌ YAML file not found: {yaml_file}")
+        raise typer.Exit(code=1)
+
     html_file = yaml_file.with_suffix(".html")
     tmp_dir = Path("/tmp")
     reload_file = (
         tmp_dir if tmp_dir.exists() else html_file.parent
     ) / f"{yaml_file.stem}_reload.txt"
 
+    # Change to yaml file's directory for relative path resolution
     os.chdir(yaml_file.parent)
     free_port(port)
 
