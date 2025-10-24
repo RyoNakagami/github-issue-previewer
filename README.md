@@ -6,8 +6,6 @@
 ![Open Issues](https://img.shields.io/github/issues-raw/RyoNakagami/github-issue-previewer)
 ![Open PRs](https://img.shields.io/github/issues-pr/RyoNakagami/github-issue-previewer)
 
-
-
 A lightweight CLI tool that provides real-time preview of GitHub Issue templates (YAML) in your browser. Perfect for designing and testing issue templates before committing them to your repository.
 
 ## Features
