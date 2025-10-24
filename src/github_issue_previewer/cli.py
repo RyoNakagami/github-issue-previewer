@@ -1,5 +1,4 @@
 import os
-import sys
 import yaml
 import webbrowser
 import socketserver
@@ -11,9 +10,8 @@ from http.server import SimpleHTTPRequestHandler
 from jinja2 import Template
 from pathlib import Path
 from typing import Optional
-import argparse
 import shutil
-
+import typer
 
 # =============================
 # Paths
@@ -25,23 +23,9 @@ CSS_TEMPLATE = STYLE_DIR / "github-issue-template.css"
 
 
 # =============================
-# CLI Arguments
-# =============================
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Live preview GitHub issue template YAML"
-    )
-    parser.add_argument("yaml_file", help="Path to issue_template.yml")
-    parser.add_argument("--browser", help="Browser path (optional)")
-    parser.add_argument("--port", type=int, default=8000, help="Port number")
-    return parser.parse_args()
-
-
-# =============================
 # Utility Functions
 # =============================
 def free_port(port: int):
-    """Kill existing process on the same port (useful for live reload)"""
     try:
         pid_output = subprocess.check_output(
             ["lsof", "-ti", f":{port}"], text=True
@@ -56,7 +40,6 @@ def free_port(port: int):
 
 
 def cleanup(temp_html: Path, css_file: Path, reload_file: Path, port: int):
-    """Remove temporary files and release resources"""
     for path in [temp_html, css_file, reload_file]:
         if path.exists():
             try:
@@ -67,9 +50,6 @@ def cleanup(temp_html: Path, css_file: Path, reload_file: Path, port: int):
     free_port(port)
 
 
-# =============================
-# HTML Generator
-# =============================
 def generate_html(
     yaml_file: Path,
     html_file: Path,
@@ -77,15 +57,12 @@ def generate_html(
     reload_file: Path,
     html_template: str,
 ):
-    # Copy CSS next to generated HTML
     css_dest = html_file.parent / css_file.name
     shutil.copy2(css_file, css_dest)
 
-    """Render YAML as HTML using Jinja2 template"""
     with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
 
-    # Provide default fields
     data.update(
         {
             "assignees": data.get("assignees", []),
@@ -104,21 +81,21 @@ def generate_html(
 
 # =============================
 # HTTP Server
+# =============================
 class ThreadedTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
-    reload_file: Optional[Path] = None  # Class attribute for storing reload file path
-    reload_file = None  # Class attribute for storing reload file path
+    reload_file: Optional[Path] = None
 
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.getcwd(), **kwargs)
-        self.reload_file = None  # Instance attribute for storing reload file path
+        self.reload_file = None
 
-    server: ThreadedTCPServer  # Type hint to recognize custom attribute
+    server: ThreadedTCPServer
 
     def log_message(self, format, *args):
-        pass  # suppress logs
+        pass
 
     def do_GET(self):
         if self.path.startswith("/reload.txt"):
@@ -139,18 +116,22 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 # =============================
-# Main Entry Point
+# Typer main function (直接引数版)
 # =============================
-def main():
-    args = parse_args()
-    yaml_file = Path(args.yaml_file).resolve()
+def main(
+    yaml_file: Path = typer.Argument(..., help="Path to issue_template.yml"),
+    browser: Optional[str] = typer.Option(
+        None, "--browser", help="Browser path (optional)"
+    ),
+    port: int = typer.Option(8000, "--port", "-p", help="Port number"),
+):
+    """Start a live HTML preview of a GitHub Issue Template YAML file."""
 
     if not yaml_file.exists():
-        print(f"❌ YAML file not found: {yaml_file}")
-        sys.exit(1)
+        typer.echo(f"❌ YAML file not found: {yaml_file}")
+        raise typer.Exit(code=1)
 
     html_file = yaml_file.with_suffix(".html")
-    port = args.port
     tmp_dir = Path("/tmp")
     reload_file = (
         tmp_dir if tmp_dir.exists() else html_file.parent
@@ -164,7 +145,6 @@ def main():
 
     generate_html(yaml_file, html_file, CSS_TEMPLATE, reload_file, html_template)
 
-    # Start threaded server
     server = ThreadedTCPServer(("localhost", port), Handler)
     server.reload_file = reload_file
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -172,37 +152,34 @@ def main():
 
     url = f"http://localhost:{port}/{html_file.name}"
     try:
-        if args.browser:
-            webbrowser.register(
-                "custom", None, webbrowser.BackgroundBrowser(args.browser)
-            )
+        if browser:
+            webbrowser.register("custom", None, webbrowser.BackgroundBrowser(browser))
             webbrowser.get("custom").open(url)
         else:
             webbrowser.open(url)
     except Exception as e:
-        print(f"⚠️ Could not open browser: {e}")
+        typer.echo(f"⚠️ Could not open browser: {e}")
 
-    print(f"✅ Live preview running at {url}. Press Ctrl+C to stop...")
+    typer.echo(f"✅ Live preview running at {url}. Press Ctrl+C to stop...")
 
-    # Watch YAML file for changes
     last_mtime = yaml_file.stat().st_mtime
     try:
         while True:
             time.sleep(1)
             if yaml_file.stat().st_mtime != last_mtime:
-                print("♻️ YAML changed, updating preview...")
+                typer.echo("♻️ YAML changed, updating preview...")
                 generate_html(
                     yaml_file, html_file, CSS_TEMPLATE, reload_file, html_template
                 )
                 last_mtime = yaml_file.stat().st_mtime
     except KeyboardInterrupt:
         css_file = html_file.parent / CSS_TEMPLATE.name
-        print("\n🛑 Shutting down server...")
+        typer.echo("\n🛑 Shutting down server...")
         server.shutdown()
         server.server_close()
         cleanup(html_file, css_file, reload_file, port)
-        print("✅ Port released. Goodbye!")
+        typer.echo("✅ Port released. Goodbye!")
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
