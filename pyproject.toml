@@ -1,6 +1,6 @@
 [project]
 name = "github-issue-previewer"
-version = "0.2.0"
+version = "0.2.1"
 description = "A lightweight tool to preview GitHub Issue templates from YAML in real-time with Jinja2 and Watchdog."
 readme = "README.md"
 requires-python = ">=3.12,<4.0"

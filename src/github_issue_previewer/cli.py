@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional
 import shutil
 import typer
+from bs4 import BeautifulSoup
 
 app = typer.Typer(help="Live preview GitHub issue template YAML", add_completion=False)
 
@@ -222,9 +223,23 @@ class Handler(SimpleHTTPRequestHandler):
 
                 html_content = re.sub(pattern, "", html_content, flags=re.DOTALL | re.IGNORECASE)
 
+                # === Extract <input id="issue-title"> and make it H1 ===
+                soup = BeautifulSoup(html_content, "html.parser")
+                 # 4️⃣ Find issue title input/div/etc.
+                issue_title = soup.find(id="issue-title-exported")
+                if issue_title:
+                    title_text = issue_title.get_text(strip=True)
+                    title_text = title_text.strip()
+                    issue_title.extract()  # safer than decompose for self-closing
 
-                # Convert HTML to Markdown
-                markdown_content = md(html_content, heading_style="ATX")
+                # 5️⃣ Convert rest of HTML to Markdown
+                markdown_body = md(str(soup), heading_style="ATX").strip()
+
+                # 6️⃣ Build final Markdown
+                if title_text:
+                    markdown_content = f"# {title_text}\n\n{markdown_body}"
+                else:
+                    markdown_content = markdown_body
 
                 if self.server.output_path:
                     output_file = Path(self.server.output_path).resolve()
